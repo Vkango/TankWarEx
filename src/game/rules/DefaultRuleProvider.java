@@ -50,6 +50,12 @@ public class DefaultRuleProvider implements RuleProvider {
 
     @Override
     public String getGameOverMessage(GameContext context) {
+        try {
+            context.getSoundManager().playSoundEffect("gameover");
+        } finally {
+
+        }
+
         int winner = getWinner(context);
         if (winner >= 0) {
             return "Team " + (winner + 1) + " Wins!";

@@ -18,7 +18,7 @@ public class SteelWallTile extends BaseEntity {
     }
 
     @Override
-    public void render(GraphicsContext gc) {
+    public void render(GraphicsContext gc, GameContext context) {
         gc.setFill(Color.DARKGRAY);
         gc.fillRect(x, y, width, height);
         gc.setStroke(Color.GRAY);

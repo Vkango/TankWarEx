@@ -23,4 +23,6 @@ public interface Controllable extends Entity {
      * 设置位置
      */
     void setPosition(double x, double y);
+
+    void noticeOutOfBounds();
 }

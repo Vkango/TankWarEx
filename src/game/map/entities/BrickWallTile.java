@@ -18,7 +18,7 @@ public class BrickWallTile extends BaseEntity {
     }
 
     @Override
-    public void render(GraphicsContext gc) {
+    public void render(GraphicsContext gc, GameContext context) {
         gc.setFill(Color.rgb(139, 69, 19));
         gc.fillRect(x, y, width, height);
         gc.setStroke(Color.rgb(101, 50, 15));

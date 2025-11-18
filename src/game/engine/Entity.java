@@ -9,7 +9,7 @@ public interface Entity {
      */
     UUID getId();
 
-    void render(GraphicsContext gc);
+    void render(GraphicsContext gc, GameContext context);
 
     /**
      * 获取X坐标

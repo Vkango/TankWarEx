@@ -32,6 +32,10 @@ public class GameEngine {
         this(new DefaultGameConfig(), new DefaultMapProvider(), new DefaultRuleProvider());
     }
 
+    public GameConfig getConfig() {
+        return config;
+    }
+
     public GameEngine(GameConfig config, MapProvider mapProvider, RuleProvider ruleProvider) {
         this.config = config;
         this.mapProvider = mapProvider;
@@ -51,6 +55,10 @@ public class GameEngine {
         mapProvider.createEntities(context);
 
         eventBus.publish(new GameEvent("GameInitialized", null, "Game initialized"));
+    }
+
+    public void initResources() {
+        mapProvider.initResources(context);
     }
 
     public void start() {
@@ -161,6 +169,7 @@ public class GameEngine {
             if (newX != x || newY != y) {
                 controllable.setVelocity(0, 0);
                 controllable.setPosition(newX, newY);
+                controllable.noticeOutOfBounds();
             }
         }
     }

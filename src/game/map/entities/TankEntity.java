@@ -72,7 +72,7 @@ public class TankEntity extends BaseEntity implements Controllable {
     }
 
     @Override
-    public void render(GraphicsContext gc) {
+    public void render(GraphicsContext gc, GameContext context) {
         // 定义队伍颜色
         Color[] TEAM_COLORS = { Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW };
         Color tankColor = TEAM_COLORS[teamIndex % TEAM_COLORS.length];
@@ -128,8 +128,15 @@ public class TankEntity extends BaseEntity implements Controllable {
         return false;
     }
 
+    @Override
+    public void noticeOutOfBounds() {
+        // 当坦克超出边界时，简单地将其标记为死亡
+        // markDead();
+    }
+
     public void fireShell(GameContext context) {
         if (tryFire()) {
+            context.getSoundManager().playSoundEffect("tank_fire");
             double shellX = x + width / 2 + Math.cos(rotation) * 25;
             double shellY = y + height / 2 + Math.sin(rotation) * 25;
 

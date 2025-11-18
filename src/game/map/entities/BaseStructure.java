@@ -37,7 +37,7 @@ public class BaseStructure extends BaseEntity {
     }
 
     @Override
-    public void render(GraphicsContext gc) {
+    public void render(GraphicsContext gc, GameContext context) {
         Color[] TEAM_COLORS = { Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW };
         Color baseColor = TEAM_COLORS[teamIndex % TEAM_COLORS.length];
 

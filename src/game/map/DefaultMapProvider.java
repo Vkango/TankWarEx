@@ -4,21 +4,28 @@ import game.engine.*;
 import game.map.entities.*;
 import javafx.scene.input.KeyCode;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class DefaultMapProvider implements MapProvider {
 
     private final Random random = new Random();
-    private double aiChangeDirectionTimer = 0;
-    private double aiFireTimer = 0;
+    private final Map<UUID, AITimer> aiTimers = new HashMap<>(); // 每个AI坦克的独立计时器
     private double waveTimer = 0;
     private int currentWave = 0;
+    private double LifeCapsuleTimer = 0;
+    private final int LifeCapsuleInterval = 3; // 每20秒生成一个生命胶囊
+
+    private static class AITimer {
+        double changeDirectionTimer;
+        double fireTimer;
+
+        AITimer() {
+            this.changeDirectionTimer = 0;
+            this.fireTimer = 0;
+        }
+    }
 
     public DefaultMapProvider() {
-        // 订阅子弹生成事件
         EventBus.getInstance().subscribe("SpawnShell", this::handleSpawnShell);
     }
 
@@ -35,6 +42,27 @@ public class DefaultMapProvider implements MapProvider {
     @Override
     public int getMapHeight() {
         return 600;
+    }
+
+    @Override
+    public void initResources(GameContext context) {
+        // 加载声音图形资源
+        // 加载地图资源
+        try {
+            context.getSoundManager().loadSound("tank_fire", "assets/sounds/shoot.wav");
+            context.getSoundManager().loadSound("explosion", "assets/sounds/eexplosion.wav");
+            context.getSoundManager().loadSound("tank_move", "assets/sounds/moving.wav");
+            context.getSoundManager().loadSound("bonus", "assets/sounds/bonus.wav");
+            context.getSoundManager().loadSound("steelhit", "assets/sounds/steelhit.wav");
+            context.getSoundManager().loadSound("start", "assets/sounds/levelstarting.wav");
+            context.getSoundManager().loadSound("gameover", "assets/sounds/gameover.wav");
+
+            context.getImageManager().loadImage("heart", "assets/images/heart.png");
+        } catch (Exception e) {
+            System.err.println("Failed to load sound: " + e.getMessage());
+        }
+
+        context.getSoundManager().playSoundEffect("start");
     }
 
     @Override
@@ -75,12 +103,23 @@ public class DefaultMapProvider implements MapProvider {
         for (int i = 0; i < 3; i++) {
             state.addEntity(new WaterTile(200 + i * 40, 400));
         }
+
     }
 
     @Override
     public void update(double deltaTime, GameContext context) {
         GameState state = context.getState();
-
+        LifeCapsuleTimer += deltaTime;
+        if (LifeCapsuleTimer >= LifeCapsuleInterval) {
+            LifeCapsuleTimer = 0;
+            // 在随机位置生成生命胶囊
+            double x = 50 + random.nextDouble() * (state.getWorldWidth() - 100);
+            double y = 50 + random.nextDouble() * (state.getWorldHeight() - 100);
+            LifeCapsule capsule = new LifeCapsule(x, y);
+            state.addEntity(capsule);
+            System.out.println("[Bonus] Life capsule spawned at (" + String.format("%.2f", x) + ", "
+                    + String.format("%.2f", y) + ")");
+        }
         // AI控制逻辑（队伍1）
         updateAI(1, deltaTime, state);
 
@@ -90,29 +129,38 @@ public class DefaultMapProvider implements MapProvider {
             updateReinforcement(1, deltaTime, state);
         }
 
+        // 清理不存在的坦克的AI计时器
+        cleanupAITimers(state);
     }
 
     private void updateAI(int teamIndex, double deltaTime, GameState state) {
         List<Object> teamEntities = state.getTeamEntityList(teamIndex);
 
-        aiChangeDirectionTimer -= deltaTime;
-        aiFireTimer -= deltaTime;
-
         for (Object obj : teamEntities) {
             if (obj instanceof TankEntity tank && tank.isAlive()) {
-                if (aiChangeDirectionTimer <= 0) {
+                // 获取或创建该坦克的独立计时器
+                AITimer timer = aiTimers.computeIfAbsent(tank.getId(), k -> new AITimer());
+
+                timer.changeDirectionTimer -= deltaTime;
+                timer.fireTimer -= deltaTime;
+
+                // 方向控制
+                if (timer.changeDirectionTimer <= 0) {
                     changeAIDirection(tank);
-                    aiChangeDirectionTimer = 2.0 + random.nextDouble() * 2.0;
+                    timer.changeDirectionTimer = 2.0 + random.nextDouble() * 2.0;
                 }
 
-                if (aiFireTimer <= 0) {
+                // 开火控制
+                if (timer.fireTimer <= 0) {
                     tank.fireShell(GameContext.getInstance());
-                    aiFireTimer = 1.0 + random.nextDouble();
+                    timer.fireTimer = 1.0 + random.nextDouble();
                 }
 
+                // 边界检查
                 if (tank.getX() < 20 || tank.getX() > state.getWorldWidth() - 60 ||
                         tank.getY() < 20 || tank.getY() > state.getWorldHeight() - 60) {
-                    changeAIDirection(tank);
+                    // changeAIDirection(tank);
+                    // timer.changeDirectionTimer = 2.0 + random.nextDouble() * 2.0;
                 }
             }
         }
@@ -159,28 +207,59 @@ public class DefaultMapProvider implements MapProvider {
 
     @Override
     public void onKeyPressed(KeyCode key, GameContext context) {
+
+        // 重生
+
+        if (key == KeyCode.R) {
+            System.out.println("[Player] Respawn requested");
+            BaseStructure playerBase = (BaseStructure) context.state.getTeamBase(0);
+            if (playerBase == null || !playerBase.isAlive()) {
+                return;
+            }
+
+            if (context.state.getTeamEntityList(0).isEmpty()) {
+                TankEntity playerTank = new TankEntity(100, 500, 0);
+                context.state.addEntity(playerTank);
+                context.state.addTeamEntity(0, playerTank);
+            }
+            return;
+        }
+
         TankEntity playerTank = getPlayerTank(context);
         if (playerTank == null)
             return;
+
+        // 存活
 
         switch (key) {
             case UP -> {
                 playerTank.setVelocity(0, -200);
                 playerTank.setRotation(-Math.PI / 2);
+                context.getSoundManager().playBGM("tank_move");
             }
             case DOWN -> {
                 playerTank.setVelocity(0, 200);
                 playerTank.setRotation(Math.PI / 2);
+                context.getSoundManager().playBGM("tank_move");
             }
             case LEFT -> {
                 playerTank.setVelocity(-200, 0);
                 playerTank.setRotation(Math.PI);
+                context.getSoundManager().playBGM("tank_move");
+            }
+            case P -> {
+                context.state.addEntity(new SteelWallTile(playerTank.getX() + 60, playerTank.getY()));
             }
             case RIGHT -> {
                 playerTank.setVelocity(200, 0);
                 playerTank.setRotation(0);
+                context.getSoundManager().playBGM("tank_move");
             }
-            case SPACE -> playerTank.fireShell(context);
+            case SPACE -> {
+                context.getSoundManager().playSoundEffect("tank_fire");
+                playerTank.fireShell(context);
+            }
+
             default -> {
                 // do nothing
             }
@@ -196,6 +275,7 @@ public class DefaultMapProvider implements MapProvider {
         if (key == KeyCode.UP || key == KeyCode.DOWN ||
                 key == KeyCode.LEFT || key == KeyCode.RIGHT) {
             playerTank.setVelocity(0, 0);
+            context.getSoundManager().stopSound("tank_move");
         }
     }
 
@@ -218,5 +298,24 @@ public class DefaultMapProvider implements MapProvider {
 
         ShellEntity shell = new ShellEntity(x, y, angle, teamIndex, ownerTankId);
         GameContext.getInstance().getState().addEntity(shell);
+    }
+
+    /**
+     * 清理不存在的坦克的AI计时器，防止内存泄漏
+     */
+    private void cleanupAITimers(GameState state) {
+        // 获取所有存活的坦克ID
+        Set<UUID> aliveTankIds = new HashSet<>();
+        for (int team = 0; team < 2; team++) {
+            List<Object> teamEntities = state.getTeamEntityList(team);
+            for (Object obj : teamEntities) {
+                if (obj instanceof TankEntity tank && tank.isAlive()) {
+                    aliveTankIds.add(tank.getId());
+                }
+            }
+        }
+
+        // 只保留存活坦克的计时器
+        aiTimers.keySet().retainAll(aliveTankIds);
     }
 }

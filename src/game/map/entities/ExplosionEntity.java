@@ -2,6 +2,7 @@ package game.map.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import game.engine.GameContext;
 
 /**
  * 爆炸效果实体
@@ -24,7 +25,7 @@ public class ExplosionEntity extends BaseEntity {
     }
 
     @Override
-    public void render(GraphicsContext gc) {
+    public void render(GraphicsContext gc, GameContext context) {
         double alpha = lifeTime / maxLifeTime;
         gc.setFill(Color.rgb(255, 100, 0, alpha));
         gc.fillOval(x - 10, y - 10, width + 20, height + 20);

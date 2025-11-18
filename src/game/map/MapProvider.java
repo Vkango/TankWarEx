@@ -50,4 +50,6 @@ public interface MapProvider {
      * @param context 游戏上下文
      */
     void onKeyReleased(KeyCode key, GameContext context);
+
+    void initResources(GameContext context);
 }

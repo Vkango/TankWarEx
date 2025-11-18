@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * 子弹实体
  */
-public class ShellEntity extends BaseEntity {
+public class ShellEntity extends BaseEntity implements Controllable {
     private final int teamIndex;
     private final double speed = 300;
     private final UUID ownerTankId; // 发射者ID，避免与发射者碰撞
@@ -28,13 +28,28 @@ public class ShellEntity extends BaseEntity {
     }
 
     @Override
+    public void noticeOutOfBounds() {
+        markDead();
+    }
+
+    @Override
+    public void setRotation(double rotation) {
+
+    }
+
+    @Override
+    public void setVelocity(double vx, double vy) {
+
+    }
+
+    @Override
     public void update(double deltaTime) {
         x += vx * deltaTime;
         y += vy * deltaTime;
     }
 
     @Override
-    public void render(GraphicsContext gc) {
+    public void render(GraphicsContext gc, GameContext context) {
         gc.setFill(Color.YELLOW);
         gc.fillOval(x, y, width, height);
     }
@@ -59,20 +74,29 @@ public class ShellEntity extends BaseEntity {
             return false; // 不阻挡，子弹继续飞行
         }
 
-        // 击中敌方坦克
-        if (other instanceof TankEntity tank && tank.getTeamIndex() != teamIndex) {
+        if (other instanceof TankEntity tank) {
+            // 自己的也杀
+            context.getSoundManager().playSoundEffect("explosion");
             tank.takeDamage(50);
             markDead();
             spawnExplosion(context);
-            return false; // 子弹已死亡，不需要阻挡
+            return false;
         }
+
+        // 击中敌方坦克
+        // if (other instanceof TankEntity tank && tank.getTeamIndex() != teamIndex) {
+        // tank.takeDamage(50);
+        // markDead();
+        // spawnExplosion(context);
+        // return false; // 子弹已死亡，不需要阻挡
+        // }
 
         // 击中敌方基地
         if (other instanceof BaseStructure base && base.getTeamIndex() != teamIndex) {
             base.takeDamage(100);
             markDead();
             spawnExplosion(context);
-
+            context.getSoundManager().playSoundEffect("explosion");
             // 通知规则提供者
             Map<String, Object> data = new java.util.HashMap<>();
             data.put("teamIndex", base.getTeamIndex());
@@ -89,6 +113,9 @@ public class ShellEntity extends BaseEntity {
             // 砖墙被摧毁
             if (other instanceof BrickWallTile) {
                 other.markDead();
+                context.getSoundManager().playSoundEffect("explosion");
+            } else {
+                context.getSoundManager().playSoundEffect("steelhit");
             }
             return false; // 子弹已死亡，不需要阻挡
         }

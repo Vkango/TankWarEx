@@ -6,8 +6,8 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Alert;
-import javafx.scene.layout.StackPane;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.StackPane;
 import game.engine.GameEngine;
 import game.engine.EventBus;
 import game.engine.GameEvent;
@@ -62,7 +62,14 @@ public class GUI extends Application {
         Scene scene = new Scene(root, 800, 600);
 
         scene.setOnKeyPressed(event -> {
-            if (engine != null) {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                if (engine.getState().isPaused())
+                    engine.resume();
+                else
+                    engine.pause();
+                return;
+            }
+            if (engine != null && !engine.getState().isPaused()) {
                 engine.handleKeyPress(event.getCode());
             }
         });
@@ -72,6 +79,8 @@ public class GUI extends Application {
                 engine.handleKeyRelease(event.getCode());
             }
         });
+
+        engine.initResources();
 
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
@@ -90,10 +99,6 @@ public class GUI extends Application {
         }
     }
 
-    public Stage getPrimaryStage() {
-        return primaryStage;
-    }
-
     /**
      * 处理基地摧毁事件
      */
@@ -101,13 +106,5 @@ public class GUI extends Application {
         Map<String, Object> data = (Map<String, Object>) event.getData();
         int teamIndex = (int) data.get("teamIndex");
 
-        // TODO: 更换为内建提示
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Base Destroyed!");
-            alert.setHeaderText("Team " + (teamIndex + 1) + " Base Destroyed!");
-            alert.setContentText("Team " + (teamIndex + 1) + "'s base has been destroyed!");
-            alert.show();
-        });
     }
 }

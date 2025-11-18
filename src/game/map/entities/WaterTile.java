@@ -15,7 +15,7 @@ public class WaterTile extends BaseEntity {
     }
 
     @Override
-    public void render(GraphicsContext gc) {
+    public void render(GraphicsContext gc, GameContext context) {
         gc.setFill(Color.CYAN);
         gc.fillRect(x, y, width, height);
     }

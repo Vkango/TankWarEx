@@ -11,22 +11,37 @@ public class GameRenderer extends AnimationTimer {
     private final Canvas canvas;
     private final GraphicsContext gc;
     private final GameEngine engine;
+    private final GameContext context = GameContext.getInstance();
     private String gameOverMessage = null;
     private int fps = 0;
     private long lastFpsTime = System.nanoTime();
+    private long lastHandleTime = System.nanoTime();
     private int frameCount = 0;
+    private long frameTimeNanos;
 
     public GameRenderer(Canvas canvas, GameEngine engine) {
         this.canvas = canvas;
         this.gc = canvas.getGraphicsContext2D();
         this.engine = engine;
+        updateFrameTime();
         EventBus.getInstance().subscribe("GameOver", this::handleGameOver);
+    }
+
+    private void updateFrameTime() {
+        double targetFps = engine.getConfig().getTargetFps();
+        this.frameTimeNanos = (long) (1_000_000_000.0 / (long) targetFps);
     }
 
     @Override
     public void handle(long now) {
+
+        if (now - lastHandleTime < frameTimeNanos) {
+            return;
+        }
+        lastHandleTime = now;
+
         frameCount++;
-        if (now - lastFpsTime >= 1_000_000_000L) {
+        if (now - lastFpsTime >= 1_000_000_000L) { // 更新帧数显示
             fps = frameCount;
             frameCount = 0;
             lastFpsTime = now;
@@ -53,14 +68,15 @@ public class GameRenderer extends AnimationTimer {
         for (Object obj : state.getEntities()) {
             if (obj instanceof Entity entity && entity.isAlive()) {
                 if (obj instanceof Entity rend) {
-                    rend.render(gc);
+                    rend.render(gc, context);
                 }
             }
         }
 
         gc.setFill(Color.WHITE);
         gc.setFont(new javafx.scene.text.Font(14));
-        gc.fillText("TankWarEx - WASD/Arrow Keys to move, SPACE to fire", 10, 20);
+        gc.fillText("TankWarEx - WASD/Arrow Keys to move, SPACE to fire, R to respawn"
+                + (engine.getState().isPaused() ? " [PAUSED]" : ""), 10, 20);
         gc.fillText("Entities: " + state.getEntities().size(), 10, 40);
 
         int yOffset = 60;
@@ -97,6 +113,7 @@ public class GameRenderer extends AnimationTimer {
             gc.setFill(Color.WHITE);
             gc.setFont(Font.font("Lucida Console", FontWeight.NORMAL, 24));
             gc.fillText(gameOverMessage, canvas.getWidth() / 2 - 100, canvas.getHeight() / 2 + 20);
+            this.stop();
         }
     }
 
