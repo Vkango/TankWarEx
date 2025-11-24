@@ -58,6 +58,11 @@ public abstract class BaseEntity implements Entity {
     }
 
     @Override
+    public int getZIndex() {
+        return 0;
+    }
+
+    @Override
     public void markDead() {
         this.alive = false;
     }

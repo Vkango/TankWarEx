@@ -38,12 +38,12 @@ public class BaseStructure extends BaseEntity {
 
     @Override
     public void render(GraphicsContext gc, GameContext context) {
-        Color[] TEAM_COLORS = { Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW };
-        Color baseColor = TEAM_COLORS[teamIndex % TEAM_COLORS.length];
+        // Color[] TEAM_COLORS = { Color.BLUE, Color.RED, Color.GREEN, Color.YELLOW };
+        // Color baseColor = TEAM_COLORS[teamIndex % TEAM_COLORS.length];
 
-        gc.setFill(baseColor.darker());
-        gc.fillRect(x, y, width, height);
-
+        // gc.setFill(baseColor.darker());
+        // gc.fillRect(x, y, width, height);
+        gc.drawImage(context.getImageManager().getImage("base"), x, y, width, height);
         gc.setFill(Color.WHITE);
         gc.fillText("BASE", x + 8, y + 30);
     }

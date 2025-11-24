@@ -14,6 +14,8 @@ public interface Controllable extends Entity {
      */
     void setVelocity(double vx, double vy);
 
+    double[] getVelocity();
+
     /**
      * 设置旋转角度
      */

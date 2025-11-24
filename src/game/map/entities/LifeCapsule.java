@@ -38,6 +38,7 @@ public class LifeCapsule extends BaseEntity {
     public boolean handleCollision(Entity other, GameContext context) {
         if (other instanceof TankEntity tank) {
             tank.takeDamage(-50); // 负伤害表示加血
+            context.getSoundManager().playSoundEffect("bonus");
             markDead();
             return true;
         }

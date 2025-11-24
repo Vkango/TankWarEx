@@ -66,4 +66,9 @@ public interface Entity {
      * @return 是否阻挡移动
      */
     boolean handleCollision(Entity other, GameContext context);
+
+    /**
+     * 获取实体的Z-index，用于渲染顺序
+     */
+    int getZIndex();
 }

@@ -9,8 +9,8 @@ public class GameState {
     private final List<Object> entities = new CopyOnWriteArrayList<>();
     private final Map<Integer, List<Object>> teamEntities = new HashMap<>();
     private final Map<Integer, Object> teamBases = new HashMap<>();
-    private double worldWidth = 800;
-    private double worldHeight = 600;
+    private double worldWidth = 1366;
+    private double worldHeight = 768;
 
     public boolean isRunning() {
         return running;
@@ -34,6 +34,13 @@ public class GameState {
 
     public void addEntity(Object entity) {
         entities.add(entity);
+        entities.sort(Comparator.comparingInt(e -> {
+            // Sort entities based on their Z-index for proper rendering order
+            if (e instanceof Entity ent) {
+                return ent.getZIndex();
+            }
+            return 0;
+        }));
     }
 
     public void removeEntity(Object entity) {

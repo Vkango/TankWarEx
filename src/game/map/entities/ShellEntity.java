@@ -38,6 +38,11 @@ public class ShellEntity extends BaseEntity implements Controllable {
     }
 
     @Override
+    public double[] getVelocity() {
+        return null;
+    }
+
+    @Override
     public void setVelocity(double vx, double vy) {
 
     }

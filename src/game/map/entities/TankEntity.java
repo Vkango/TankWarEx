@@ -14,6 +14,23 @@ public class TankEntity extends BaseEntity implements Controllable {
     private double fireCooldown = 0;
     private static final double FIRE_COOLDOWN_TIME = 0.1;
     private int health = 100;
+    private double speedUpTimer = 0;
+    private static final double SPEED_UP_TIME = 10;
+    private boolean isInSpeedUp = false;
+    private static final double SPEED_UP_RATE = 5;
+
+    public void setVelocityX(double v) {
+        setVelocity(v, getVelocity()[1] / (isInSpeedUp ? SPEED_UP_RATE : 1));
+    }
+
+    public void setVelocityY(double v) {
+        setVelocity(getVelocity()[0] / (isInSpeedUp ? SPEED_UP_RATE : 1), v);
+    }
+
+    @Override
+    public double[] getVelocity() {
+        return new double[] { vx, vy };
+    }
 
     public TankEntity(double x, double y, int teamIndex) {
         super(x, y, 40, 40);
@@ -27,8 +44,15 @@ public class TankEntity extends BaseEntity implements Controllable {
 
     @Override
     public void setVelocity(double vx, double vy) {
+        if (speedUpTimer > 0 && isInSpeedUp) {
+            // 处理加速
+            vx = vx * SPEED_UP_RATE;
+            vy = vy * SPEED_UP_RATE;
+        }
+
         this.vx = vx;
         this.vy = vy;
+
     }
 
     @Override
@@ -49,6 +73,18 @@ public class TankEntity extends BaseEntity implements Controllable {
         return false;
     }
 
+    public void setSpeedUp() {
+        // 只要接触到就加速 (重置时间)
+        speedUpTimer = SPEED_UP_TIME;
+
+        if (!isInSpeedUp) {
+            isInSpeedUp = true;
+            vx = vx * SPEED_UP_RATE;
+            vy = vy * SPEED_UP_RATE;
+        }
+
+    }
+
     public int getHealth() {
         return health;
     }
@@ -66,9 +102,23 @@ public class TankEntity extends BaseEntity implements Controllable {
             fireCooldown -= deltaTime;
         }
 
+        if (speedUpTimer > 0 && isInSpeedUp) {
+            speedUpTimer -= deltaTime;
+            // System.out.println(speedUpTimer + " | " + vx + " | " + vy);
+        } else if (speedUpTimer <= 0 && isInSpeedUp) {
+            vx = vx / SPEED_UP_RATE;
+            vy = vy / SPEED_UP_RATE;
+            isInSpeedUp = false;
+        }
+
         // 移动
         x += vx * deltaTime;
         y += vy * deltaTime;
+    }
+
+    @Override
+    public int getZIndex() {
+        return 1; // 坦克的Z-index高于基地等静态实体
     }
 
     @Override

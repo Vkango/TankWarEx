@@ -57,9 +57,9 @@ public class GUI extends Application {
             System.exit(0);
         });
 
-        canvas = new Canvas(800, 600);
+        canvas = new Canvas(engine.getState().getWorldWidth(), engine.getState().getWorldHeight());
         StackPane root = new StackPane(canvas);
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, engine.getState().getWorldWidth(), engine.getState().getWorldHeight());
 
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {

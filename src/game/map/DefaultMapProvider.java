@@ -36,12 +36,12 @@ public class DefaultMapProvider implements MapProvider {
 
     @Override
     public int getMapWidth() {
-        return 800;
+        return 1366;
     }
 
     @Override
     public int getMapHeight() {
-        return 600;
+        return 768;
     }
 
     @Override
@@ -58,6 +58,8 @@ public class DefaultMapProvider implements MapProvider {
             context.getSoundManager().loadSound("gameover", "assets/sounds/gameover.wav");
 
             context.getImageManager().loadImage("heart", "assets/images/heart.png");
+            context.getImageManager().loadImage("grass", "assets/images/grass.png");
+            context.getImageManager().loadImage("base", "assets/images/symbol.png");
         } catch (Exception e) {
             System.err.println("Failed to load sound: " + e.getMessage());
         }
@@ -233,25 +235,28 @@ public class DefaultMapProvider implements MapProvider {
 
         switch (key) {
             case UP -> {
-                playerTank.setVelocity(0, -200);
+                playerTank.setVelocityY(-200);
                 playerTank.setRotation(-Math.PI / 2);
                 context.getSoundManager().playBGM("tank_move");
             }
             case DOWN -> {
-                playerTank.setVelocity(0, 200);
+                playerTank.setVelocityY(200);
                 playerTank.setRotation(Math.PI / 2);
                 context.getSoundManager().playBGM("tank_move");
             }
             case LEFT -> {
-                playerTank.setVelocity(-200, 0);
+                playerTank.setVelocityX(-200);
                 playerTank.setRotation(Math.PI);
                 context.getSoundManager().playBGM("tank_move");
             }
             case P -> {
                 context.state.addEntity(new SteelWallTile(playerTank.getX() + 60, playerTank.getY()));
             }
+            case G -> {
+                context.state.addEntity(new SpeedUp(playerTank.getX() + 60, playerTank.getY()));
+            }
             case RIGHT -> {
-                playerTank.setVelocity(200, 0);
+                playerTank.setVelocityX(200);
                 playerTank.setRotation(0);
                 context.getSoundManager().playBGM("tank_move");
             }
@@ -272,9 +277,27 @@ public class DefaultMapProvider implements MapProvider {
         if (playerTank == null)
             return;
 
+        switch (key) {
+            case UP -> {
+                playerTank.setVelocityY(0);
+            }
+            case DOWN -> {
+                playerTank.setVelocityY(0);
+            }
+            case LEFT -> {
+                playerTank.setVelocityX(0);
+            }
+            case RIGHT -> {
+                playerTank.setVelocityX(0);
+            }
+            default -> {
+
+            }
+        }
+
         if (key == KeyCode.UP || key == KeyCode.DOWN ||
                 key == KeyCode.LEFT || key == KeyCode.RIGHT) {
-            playerTank.setVelocity(0, 0);
+            // playerTank.setVelocity(0, 0);
             context.getSoundManager().stopSound("tank_move");
         }
     }
