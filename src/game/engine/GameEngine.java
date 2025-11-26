@@ -1,12 +1,9 @@
 package game.engine;
 
 import game.map.MapProvider;
-import game.map.DefaultMapProvider;
 import game.rules.RuleProvider;
 import javafx.scene.input.KeyCode;
-import game.rules.DefaultRuleProvider;
 import game.config.GameConfig;
-import game.config.DefaultGameConfig;
 import java.util.UUID;
 
 /**
@@ -22,24 +19,20 @@ public class GameEngine {
     private final GameContext context = GameContext.getInstance();
     private final EventBus eventBus = EventBus.getInstance();
     private final GameConfig config;
-    private MapProvider mapProvider;
-    private RuleProvider ruleProvider;
 
     private Thread gameThread;
     private volatile boolean running = false;
+    private MapProvider mapProvider;
+    private RuleProvider ruleProvider;
 
     public GameEngine() {
-        this(new DefaultGameConfig(), new DefaultMapProvider(), new DefaultRuleProvider());
+        this.config = context.getConfig();
+        this.mapProvider = context.getMapProvider();
+        this.ruleProvider = context.getRuleProvider();
     }
 
     public GameConfig getConfig() {
         return config;
-    }
-
-    public GameEngine(GameConfig config, MapProvider mapProvider, RuleProvider ruleProvider) {
-        this.config = config;
-        this.mapProvider = mapProvider;
-        this.ruleProvider = ruleProvider;
     }
 
     public void initialize() {

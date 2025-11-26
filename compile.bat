@@ -8,7 +8,7 @@ if exist bin (
 mkdir bin
 
 echo [1/2] Compiling all classes...
-javac -encoding UTF-8 -d bin --module-path %JAVAFX_PATH% --add-modules javafx.controls,javafx.fxml src\game\engine\*.java src\game\config\*.java src\game\map\*.java src\game\map\entities\*.java src\game\rules\*.java src\ui\gui\*.java src\bootstrap\*.java 2>&1
+javac -encoding UTF-8 -d bin --module-path %JAVAFX_PATH% --add-modules javafx.controls,javafx.fxml src\game\engine\*.java src\game\config\*.java src\game\map\*.java src\game\map\entities\tanks\*.java src\game\map\entities\*.java src\game\rules\*.java src\ui\gui\*.java src\bootstrap\*.java 2>&1
 if errorlevel 1 (
     echo [ERROR] Compilation failed
     goto :error

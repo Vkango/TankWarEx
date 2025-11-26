@@ -1,7 +1,8 @@
 package game.rules;
 
 import game.engine.*;
-import game.map.entities.*;
+import game.map.entities.tanks.BaseTankEntity;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class DefaultRuleProvider implements RuleProvider {
             Object base = state.getTeamBase(teamIndex);
             boolean baseAlive = base != null && base instanceof Entity entity && entity.isAlive();
             boolean hasAliveTanks = state.getTeamEntityList(teamIndex).stream()
-                    .anyMatch(e -> e instanceof TankEntity tank && tank.isAlive());
+                    .anyMatch(e -> e instanceof game.map.entities.tanks.BaseTankEntity tank && tank.isAlive());
 
             if (baseAlive || hasAliveTanks) {
                 aliveTeamCount++;
@@ -36,8 +37,8 @@ public class DefaultRuleProvider implements RuleProvider {
             boolean baseAlive = base != null && base instanceof Entity entity && entity.isAlive();
 
             boolean hasAliveTanks = state.getTeamEntityList(teamIndex).stream()
-                    .filter(e -> e instanceof TankEntity)
-                    .map(e -> (TankEntity) e)
+                    .filter(e -> e instanceof game.map.entities.tanks.BaseTankEntity)
+                    .map(e -> (BaseTankEntity) e)
                     .anyMatch(Entity::isAlive);
 
             if (baseAlive || hasAliveTanks) {

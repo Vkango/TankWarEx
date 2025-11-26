@@ -21,7 +21,7 @@ public class GrassEntity extends BaseEntity {
 
     @Override
     public boolean handleCollision(Entity other, GameContext context) {
-        if (other instanceof TankEntity) {
+        if (other instanceof game.map.entities.tanks.BaseTankEntity) {
             return true; // 阻挡坦克
         }
         return false;

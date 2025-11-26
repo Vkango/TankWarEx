@@ -39,12 +39,13 @@ public class ShellEntity extends BaseEntity implements Controllable {
 
     @Override
     public double[] getVelocity() {
-        return null;
+        return new double[] { vx, vy };
     }
 
     @Override
     public void setVelocity(double vx, double vy) {
-
+        this.vx = vx;
+        this.vy = vy;
     }
 
     @Override
@@ -79,7 +80,7 @@ public class ShellEntity extends BaseEntity implements Controllable {
             return false; // 不阻挡，子弹继续飞行
         }
 
-        if (other instanceof TankEntity tank) {
+        if (other instanceof game.map.entities.tanks.BaseTankEntity tank) {
             // 自己的也杀
             context.getSoundManager().playSoundEffect("explosion");
             tank.takeDamage(50);

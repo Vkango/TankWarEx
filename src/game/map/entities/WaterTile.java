@@ -16,13 +16,13 @@ public class WaterTile extends BaseEntity {
 
     @Override
     public void render(GraphicsContext gc, GameContext context) {
-        gc.setFill(Color.CYAN);
+        gc.setFill(Color.BLUE);
         gc.fillRect(x, y, width, height);
     }
 
     @Override
     public boolean handleCollision(Entity other, GameContext context) {
-        if (other instanceof TankEntity) {
+        if (other instanceof game.map.entities.tanks.BaseTankEntity) {
             return true; // 阻挡坦克
         }
         return false;

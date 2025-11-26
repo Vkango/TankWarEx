@@ -10,7 +10,7 @@ import game.engine.*;
 public class GameRenderer extends AnimationTimer {
     private final Canvas canvas;
     private final GraphicsContext gc;
-    private final GameEngine engine;
+    private final GameEngine engine = GameContext.getInstance().getEngine();
     private final GameContext context = GameContext.getInstance();
     private String gameOverMessage = null;
     private int fps = 0;
@@ -19,10 +19,9 @@ public class GameRenderer extends AnimationTimer {
     private int frameCount = 0;
     private long frameTimeNanos;
 
-    public GameRenderer(Canvas canvas, GameEngine engine) {
+    public GameRenderer(Canvas canvas) {
         this.canvas = canvas;
         this.gc = canvas.getGraphicsContext2D();
-        this.engine = engine;
         updateFrameTime();
         EventBus.getInstance().subscribe("GameOver", this::handleGameOver);
     }
@@ -55,15 +54,15 @@ public class GameRenderer extends AnimationTimer {
         gc.setFill(Color.rgb(20, 20, 30));
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        // 网格
-        gc.setStroke(Color.GRAY);
-        gc.setLineWidth(1);
-        for (int i = 0; i < canvas.getWidth(); i += 50) {
-            gc.strokeLine(i, 0, i, canvas.getHeight());
-        }
-        for (int i = 0; i < canvas.getHeight(); i += 50) {
-            gc.strokeLine(0, i, canvas.getWidth(), i);
-        }
+        // // 网格
+        // gc.setStroke(Color.GRAY);
+        // gc.setLineWidth(1);
+        // for (int i = 0; i < canvas.getWidth(); i += 50) {
+        // gc.strokeLine(i, 0, i, canvas.getHeight());
+        // }
+        // for (int i = 0; i < canvas.getHeight(); i += 50) {
+        // gc.strokeLine(0, i, canvas.getWidth(), i);
+        // }
 
         for (Object obj : state.getEntities()) {
             if (obj instanceof Entity entity && entity.isAlive()) {
@@ -82,7 +81,7 @@ public class GameRenderer extends AnimationTimer {
         int yOffset = 60;
         for (int teamIndex : state.getTeamEntities().keySet()) {
             long tankCount = state.getTeamEntityList(teamIndex).stream()
-                    .filter(e -> e instanceof game.map.entities.TankEntity)
+                    .filter(e -> e instanceof game.map.entities.tanks.BaseTankEntity)
                     .filter(e -> ((Entity) e).isAlive())
                     .count();
 

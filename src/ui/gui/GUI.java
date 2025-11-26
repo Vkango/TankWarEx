@@ -5,106 +5,90 @@ import javafx.application.Platform;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.control.Alert;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
-import game.engine.GameEngine;
-import game.engine.EventBus;
-import game.engine.GameEvent;
-import java.util.Map;
+import game.engine.GameContext;
 
 public class GUI extends Application {
     private static GUI instance;
-    private static GameEngine staticEngine;
-    private Stage primaryStage;
+    private static GameContext staticContext;
     private Canvas canvas;
     private GameRenderer renderer;
-    private GameEngine engine;
+    private GameContext context;
 
     public GUI() {
         instance = this;
-        this.engine = staticEngine;
-
-        // 订阅基地摧毁事件
-        EventBus.getInstance().subscribe("BaseDestroyed", this::handleBaseDestroyed);
+        this.context = staticContext;
     }
 
     public static GUI getInstance() {
         return instance;
     }
 
-    public static void setStaticEngine(GameEngine engine) {
-        staticEngine = engine;
+    public static void setStaticContext(GameContext context) {
+        staticContext = context;
     }
 
-    public void setEngine(GameEngine engine) {
-        this.engine = engine;
-        if (canvas != null && engine != null) {
-            renderer = new GameRenderer(canvas, engine);
+    public void setContext(GameContext context) {
+        this.context = context;
+        if (canvas != null && context != null) {
+            renderer = new GameRenderer(canvas);
             renderer.start();
         }
     }
 
     @Override
     public void start(Stage primaryStage) {
-        this.primaryStage = primaryStage;
         primaryStage.setTitle("TankWarEx");
         primaryStage.setOnCloseRequest(e -> {
-            if (engine != null) {
-                engine.stop();
+            if (context.getEngine() != null) {
+                context.getEngine().stop();
             }
             Platform.exit();
             System.exit(0);
         });
 
-        canvas = new Canvas(engine.getState().getWorldWidth(), engine.getState().getWorldHeight());
+        canvas = new Canvas(context.getEngine().getState().getWorldWidth(),
+                context.getEngine().getState().getWorldHeight());
         StackPane root = new StackPane(canvas);
-        Scene scene = new Scene(root, engine.getState().getWorldWidth(), engine.getState().getWorldHeight());
+        Scene scene = new Scene(root, context.getEngine().getState().getWorldWidth(),
+                context.getEngine().getState().getWorldHeight());
 
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
-                if (engine.getState().isPaused())
-                    engine.resume();
+                if (context.getEngine().getState().isPaused())
+                    context.getEngine().resume();
                 else
-                    engine.pause();
+                    context.getEngine().pause();
                 return;
             }
-            if (engine != null && !engine.getState().isPaused()) {
-                engine.handleKeyPress(event.getCode());
+            if (context.getEngine() != null && !context.getEngine().getState().isPaused()) {
+                context.getInputManager().pressKey(event.getCode());
+                context.getEngine().handleKeyPress(event.getCode());
             }
         });
 
         scene.setOnKeyReleased(event -> {
-            if (engine != null) {
-                engine.handleKeyRelease(event.getCode());
+            if (context.getEngine() != null) {
+                context.getInputManager().releaseKey(event.getCode());
+                context.getEngine().handleKeyRelease(event.getCode());
             }
         });
 
-        engine.initResources();
+        context.getEngine().initResources();
 
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
 
-        System.out.println("[GUI] Window shown, engine is: " + (engine != null ? "ready" : "NULL"));
-
-        if (engine != null) {
+        if (context.getEngine() != null) {
             System.out.println("[GUI] Starting renderer and game engine...");
-            renderer = new GameRenderer(canvas, engine);
+            renderer = new GameRenderer(canvas);
             renderer.start();
-            engine.start();
+            context.getEngine().start();
             System.out.println("[GUI] Engine started");
         } else {
             System.err.println("[GUI] ERROR: Engine is null!");
         }
-    }
-
-    /**
-     * 处理基地摧毁事件
-     */
-    private void handleBaseDestroyed(GameEvent event) {
-        Map<String, Object> data = (Map<String, Object>) event.getData();
-        int teamIndex = (int) data.get("teamIndex");
-
     }
 }

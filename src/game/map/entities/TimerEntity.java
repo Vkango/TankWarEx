@@ -4,30 +4,29 @@ import game.engine.*;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class SpeedUp extends BaseEntity {
-    public SpeedUp(double x, double y) {
+public class TimerEntity extends BaseEntity {
+    private double time = 0;
+
+    public TimerEntity(double x, double y) {
         super(x, y, 40, 40);
     }
 
     @Override
     public void update(double deltaTime) {
+        // 计时器不移动
+        time += deltaTime;
     }
 
     @Override
     public void render(GraphicsContext gc, GameContext context) {
-        gc.setFill(Color.PURPLE);
+        gc.setFill(Color.CYAN);
         gc.fillRect(x, y, width, height);
-        gc.setFill(Color.WHITE);
-        gc.fillText("UP", x + 8, y + 30);
+        gc.setFill(Color.BLACK);
+        gc.fillText(String.format("%.2fs", time), x + 5, y + 25);
     }
 
     @Override
     public boolean handleCollision(Entity other, GameContext context) {
-        if (other instanceof game.map.entities.tanks.BaseTankEntity tank && isAlive()) {
-            tank.activateSpeedBoost();
-            markDead();
-            context.getSoundManager().playSoundEffect("bonus");
-        }
         return false;
     }
 }
