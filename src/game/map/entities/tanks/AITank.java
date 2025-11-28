@@ -7,7 +7,7 @@ public class AITank extends BaseTankEntity {
     private final Random random = new Random();
     private double changeDirectionTimer = 0;
     private double fireTimer = 0;
-    private static final double BASE_SPEED = 150;
+    private static final double BASE_SPEED = 300;
 
     public AITank(double x, double y, int teamIndex) {
         super(x, y, teamIndex);

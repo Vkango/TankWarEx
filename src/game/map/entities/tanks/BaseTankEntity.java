@@ -35,7 +35,7 @@ public abstract class BaseTankEntity extends BaseEntity implements Controllable 
     }
 
     public BaseTankEntity(double x, double y, int teamIndex) {
-        super(x, y, 40, 40);
+        super(x, y, 30, 30);
         this.teamIndex = teamIndex;
     }
 

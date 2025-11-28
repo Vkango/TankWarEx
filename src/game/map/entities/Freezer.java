@@ -15,7 +15,7 @@ public class Freezer extends BaseEntity {
     private boolean hasTriggered;
 
     public Freezer(double x, double y) {
-        super(x, y, 20, 20);
+        super(x, y, 40, 40);
         this.lifeTime = maxLifeTime;
         this.hasTriggered = false;
     }
@@ -41,8 +41,9 @@ public class Freezer extends BaseEntity {
 
         // 绘制中心图标
         gc.setFill(Color.rgb(137, 205, 248, alpha));
-        gc.fillOval(x - 10, y - 10, width + 20, height + 20);
-        gc.drawImage(context.getImageManager().getImage("ice"), x - 10, y - 10, width + 20, height + 20);
+        gc.fillOval(x - width / 2, y - height / 2, width + width / 2, height + height / 2);
+        gc.drawImage(context.getImageManager().getImage("ice"), x - width / 2, y - height / 2, width + width / 2,
+                height + height / 2);
     }
 
     @Override

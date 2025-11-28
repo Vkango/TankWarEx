@@ -4,6 +4,7 @@ import game.engine.*;
 import game.map.entities.*;
 import javafx.scene.input.KeyCode;
 import game.map.entities.tanks.*;
+import game.map.MapXMLParser;
 
 import java.util.*;
 
@@ -14,6 +15,7 @@ public class DefaultMapProvider implements MapProvider {
     private int currentWave = 0;
     private double LifeCapsuleTimer = 0;
     private final int LifeCapsuleInterval = 3; // 每20秒生成一个生命胶囊
+    private final MapXMLParser mapParser = new MapXMLParser();
 
     public DefaultMapProvider() {
         EventBus.getInstance().subscribe("SpawnShell", this::handleSpawnShell);
@@ -63,14 +65,16 @@ public class DefaultMapProvider implements MapProvider {
     public void createEntities(GameContext context) {
         GameState state = context.getState();
 
-        state.setWorldWidth(getMapWidth());
-        state.setWorldHeight(getMapHeight());
+        int[] mapSize = mapParser.loadMapFromXML("assets/maps/default.xml", 40);
+
+        state.setWorldWidth(mapSize[0] * 40);
+        state.setWorldHeight(mapSize[1] * 40);
 
         TimerEntity timer = new TimerEntity(10, 10);
         state.addEntity(timer);
 
         // 队伍0（玩家）
-        PlayerTank playerTank = new PlayerTank(100, 500, 0);
+        PlayerTank playerTank = new PlayerTank(100, 600, 0);
         state.addEntity(playerTank);
         state.addTeamEntity(0, playerTank);
 
@@ -91,15 +95,17 @@ public class DefaultMapProvider implements MapProvider {
         state.addEntity(aiBase);
         state.setTeamBase(1, aiBase);
 
-        // 地图障碍物
-        for (int i = 0; i < 5; i++) {
-            state.addEntity(new BrickWallTile(350 + i * 40, 250));
-        }
-        state.addEntity(new SteelWallTile(300, 300));
-        state.addEntity(new SteelWallTile(500, 300));
-        for (int i = 0; i < 3; i++) {
-            state.addEntity(new WaterTile(200 + i * 40, 400));
-        }
+        mapParser.placeNodes(state);
+
+        // // 地图障碍物
+        // for (int i = 0; i < 5; i++) {
+        // state.addEntity(new BrickWallTile(350 + i * 40, 250));
+        // }
+        // state.addEntity(new SteelWallTile(300, 300));
+        // state.addEntity(new SteelWallTile(500, 300));
+        // for (int i = 0; i < 3; i++) {
+        // state.addEntity(new WaterTile(200 + i * 40, 400));
+        // }
 
     }
 
@@ -164,7 +170,7 @@ public class DefaultMapProvider implements MapProvider {
             }
 
             if (context.state.getTeamEntityList(0).isEmpty()) {
-                PlayerTank playerTank = new PlayerTank(100, 500, 0);
+                PlayerTank playerTank = new PlayerTank(100, 600, 0);
                 context.state.addEntity(playerTank);
                 context.state.addTeamEntity(0, playerTank);
             }
