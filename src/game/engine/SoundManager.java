@@ -57,6 +57,14 @@ public final class SoundManager {
         }
     }
 
+    public void stopAll() {
+        for (Clip clip : sounds.values()) {
+            if (clip.isRunning()) {
+                clip.stop();
+            }
+        }
+    }
+
     public void cleanup() {
         sounds.values().forEach(clip -> {
             clip.stop();

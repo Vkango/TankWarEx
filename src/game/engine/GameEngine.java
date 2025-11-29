@@ -27,7 +27,7 @@ public class GameEngine {
 
     public GameEngine() {
         this.config = context.getConfig();
-        this.mapProvider = context.getMapProvider();
+        // this.mapProvider = context.getMapProvider(); // MapProvider is set later
         this.ruleProvider = context.getRuleProvider();
     }
 
@@ -39,11 +39,16 @@ public class GameEngine {
         if (running) {
             stop();
         }
+        
+        // Refresh providers from context
+        this.mapProvider = context.getMapProvider();
+        this.ruleProvider = context.getRuleProvider();
+        
+        if (mapProvider == null) {
+            throw new RuntimeException("Cannot initialize engine: MapProvider is null");
+        }
 
         context.reset();
-
-        context.getState().setWorldWidth(mapProvider.getMapWidth());
-        context.getState().setWorldHeight(mapProvider.getMapHeight());
 
         mapProvider.createEntities(context);
 
@@ -51,7 +56,9 @@ public class GameEngine {
     }
 
     public void initResources() {
-        mapProvider.initResources(context);
+        if (mapProvider != null) {
+            mapProvider.initResources(context);
+        }
     }
 
     public void start() {
@@ -142,8 +149,8 @@ public class GameEngine {
 
     private void enforceBoundaries() {
         GameState state = context.getState();
-        double worldWidth = state.getWorldWidth();
-        double worldHeight = state.getWorldHeight();
+        double worldWidth = mapProvider.getMapWidth();
+        double worldHeight = mapProvider.getMapHeight();
 
         for (Object obj : state.getEntities()) {
             if (!(obj instanceof Controllable controllable) || !controllable.isAlive())

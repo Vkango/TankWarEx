@@ -1,0 +1,94 @@
+package plugin.api;
+
+import game.map.MapProvider;
+import game.rules.RuleProvider;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ServiceLoader;
+
+public class PluginManager {
+    private static PluginManager instance;
+    private final List<MapProvider> mapProviders = new ArrayList<>();
+    private final List<RuleProvider> ruleProviders = new ArrayList<>();
+
+    private PluginManager() {
+    }
+
+    public static PluginManager getInstance() {
+        if (instance == null) {
+            instance = new PluginManager();
+        }
+        return instance;
+    }
+
+    public void loadPlugins() {
+        mapProviders.clear();
+        ruleProviders.clear();
+
+        loadServices(ClassLoader.getSystemClassLoader(), false);
+
+        File pluginDir = new File("plugins");
+        if (!pluginDir.exists()) {
+            pluginDir.mkdirs();
+        }
+
+        File[] jarFiles = pluginDir.listFiles((dir, name) -> name.endsWith(".jar"));
+        if (jarFiles != null) {
+            for (File file : jarFiles) {
+                try {
+                    URL url = file.toURI().toURL();
+                    System.out.println("Loading plugin jar: " + file.getName());
+                    URLClassLoader pluginLoader = new URLClassLoader(new URL[]{url}, ClassLoader.getSystemClassLoader());
+                    loadServices(pluginLoader, true);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        System.out.println("Loaded " + mapProviders.size() + " MapProviders.");
+        System.out.println("Loaded " + ruleProviders.size() + " RuleProviders.");
+    }
+
+    private void loadServices(ClassLoader classLoader, boolean checkClassLoader) {
+        ServiceLoader<MapProvider> maps = ServiceLoader.load(MapProvider.class, classLoader);
+        for (MapProvider map : maps) {
+            if (checkClassLoader && map.getClass().getClassLoader() != classLoader) {
+                continue;
+            }
+            mapProviders.add(map);
+            System.out.println("Loaded MapProvider: " + map.getMapName() + " (" + map.getClass().getName() + ")");
+        }
+
+        ServiceLoader<RuleProvider> rules = ServiceLoader.load(RuleProvider.class, classLoader);
+        for (RuleProvider rule : rules) {
+            if (checkClassLoader && rule.getClass().getClassLoader() != classLoader) {
+                continue;
+            }
+            ruleProviders.add(rule);
+            System.out.println("Loaded RuleProvider: " + rule.getClass().getName());
+        }
+    }
+
+    public List<MapProvider> getMapProviders() {
+        return mapProviders;
+    }
+
+    public List<RuleProvider> getRuleProviders() {
+        return ruleProviders;
+    }
+
+    public MapProvider getMapProvider(String name) {
+        for (MapProvider mp : mapProviders) {
+            if (mp.getMapName().equals(name)) {
+                return mp;
+            }
+        }
+        return null;
+    }
+}

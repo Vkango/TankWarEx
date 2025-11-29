@@ -53,6 +53,7 @@ public final class GameContext {
 
     public void reset() {
         state.reset();
+        inputManager.clear();
     }
 
     public SoundManager getSoundManager() {
@@ -77,5 +78,9 @@ public final class GameContext {
 
     public GameEngine getEngine() {
         return this.engine;
+    }
+
+    public void showToast(String message) {
+        eventBus.publish(new GameEvent("ShowToast", null, message));
     }
 }

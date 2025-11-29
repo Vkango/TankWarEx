@@ -9,8 +9,6 @@ public class GameState {
     private final List<Object> entities = new CopyOnWriteArrayList<>();
     private final Map<Integer, List<Object>> teamEntities = new HashMap<>();
     private final Map<Integer, Object> teamBases = new HashMap<>();
-    private double worldWidth = 1366;
-    private double worldHeight = 768;
 
     public boolean isRunning() {
         return running;
@@ -76,22 +74,6 @@ public class GameState {
 
     public Object getTeamBase(int teamIndex) {
         return teamBases.get(teamIndex);
-    }
-
-    public double getWorldWidth() {
-        return worldWidth;
-    }
-
-    public void setWorldWidth(double width) {
-        this.worldWidth = width;
-    }
-
-    public double getWorldHeight() {
-        return worldHeight;
-    }
-
-    public void setWorldHeight(double height) {
-        this.worldHeight = height;
     }
 
     public void reset() {
