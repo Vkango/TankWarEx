@@ -8,4 +8,8 @@ public interface GameConfig {
     default double getFrameTime() {
         return 1.0 / getTargetFps();
     }
+
+    default int getDifficulty() {
+        return 1;
+    }
 }

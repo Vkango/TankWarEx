@@ -52,4 +52,12 @@ public interface MapProvider {
     void onKeyReleased(KeyCode key, GameContext context);
 
     void initResources(GameContext context);
+
+    /**
+     * 获取玩家实体（用于摄像机追踪等）
+     * 
+     * @param context 游戏上下文
+     * @return 玩家实体，如果不存在则返回 null
+     */
+    Entity getPlayerEntity(GameContext context);
 }

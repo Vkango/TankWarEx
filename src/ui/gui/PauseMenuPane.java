@@ -11,6 +11,7 @@ public class PauseMenuPane extends VBox {
     private Runnable onResume;
     private Runnable onRestart;
     private Runnable onBackToLevelSelect;
+    private Runnable onSaveGame;
 
     public PauseMenuPane() {
         setAlignment(Pos.CENTER);
@@ -21,13 +22,18 @@ public class PauseMenuPane extends VBox {
         title.setFont(Font.font("微软雅黑", 36));
         title.setFill(Color.WHITE);
 
-        Button resumeBtn = createButton("Resume Game");
-        Button restartBtn = createButton("Restart Game");
-        Button backBtn = createButton("Back to Level Select");
+        Button resumeBtn = createButton("继续游戏");
+        Button saveBtn = createButton("保存游戏");
+        Button restartBtn = createButton("重新开始");
+        Button backBtn = createButton("返回选择关卡");
 
         resumeBtn.setOnAction(e -> {
             if (onResume != null)
                 onResume.run();
+        });
+        saveBtn.setOnAction(e -> {
+            if (onSaveGame != null)
+                onSaveGame.run();
         });
         restartBtn.setOnAction(e -> {
             if (onRestart != null)
@@ -38,7 +44,7 @@ public class PauseMenuPane extends VBox {
                 onBackToLevelSelect.run();
         });
 
-        getChildren().addAll(title, resumeBtn, restartBtn, backBtn);
+        getChildren().addAll(title, resumeBtn, saveBtn, restartBtn, backBtn);
     }
 
     private Button createButton(String text) {
@@ -60,5 +66,9 @@ public class PauseMenuPane extends VBox {
 
     public void setOnBackToLevelSelect(Runnable handler) {
         this.onBackToLevelSelect = handler;
+    }
+
+    public void setOnSaveGame(Runnable handler) {
+        this.onSaveGame = handler;
     }
 }

@@ -71,4 +71,6 @@ public interface Entity {
      * 获取实体的Z-index，用于渲染顺序
      */
     int getZIndex();
+
+    String getMessage();
 }

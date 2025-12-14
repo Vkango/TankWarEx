@@ -15,6 +15,7 @@ public class PluginManager {
     private static PluginManager instance;
     private final List<MapProvider> mapProviders = new ArrayList<>();
     private final List<RuleProvider> ruleProviders = new ArrayList<>();
+    private final List<ClassLoader> pluginClassLoaders = new ArrayList<>();
 
     private PluginManager() {
     }
@@ -29,7 +30,9 @@ public class PluginManager {
     public void loadPlugins() {
         mapProviders.clear();
         ruleProviders.clear();
+        pluginClassLoaders.clear();
 
+        pluginClassLoaders.add(ClassLoader.getSystemClassLoader());
         loadServices(ClassLoader.getSystemClassLoader(), false);
 
         File pluginDir = new File("plugins");
@@ -43,7 +46,9 @@ public class PluginManager {
                 try {
                     URL url = file.toURI().toURL();
                     System.out.println("Loading plugin jar: " + file.getName());
-                    URLClassLoader pluginLoader = new URLClassLoader(new URL[]{url}, ClassLoader.getSystemClassLoader());
+                    URLClassLoader pluginLoader = new URLClassLoader(new URL[] { url },
+                            ClassLoader.getSystemClassLoader());
+                    pluginClassLoaders.add(pluginLoader);
                     loadServices(pluginLoader, true);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
@@ -90,5 +95,24 @@ public class PluginManager {
             }
         }
         return null;
+    }
+
+    public RuleProvider getRuleProviderForMap(MapProvider mapProvider) {
+        if (mapProvider == null) {
+            return ruleProviders.isEmpty() ? null : ruleProviders.get(0);
+        }
+        ClassLoader mapClassLoader = mapProvider.getClass().getClassLoader();
+
+        for (RuleProvider rp : ruleProviders) {
+            if (rp.getClass().getClassLoader() == mapClassLoader) {
+                return rp;
+            }
+        }
+
+        return null;
+    }
+
+    public List<ClassLoader> getPluginClassLoaders() {
+        return new ArrayList<>(pluginClassLoaders);
     }
 }

@@ -27,7 +27,6 @@ public class GameEngine {
 
     public GameEngine() {
         this.config = context.getConfig();
-        // this.mapProvider = context.getMapProvider(); // MapProvider is set later
         this.ruleProvider = context.getRuleProvider();
     }
 
@@ -35,18 +34,21 @@ public class GameEngine {
         return config;
     }
 
+    public void reloadContext() {
+        this.mapProvider = context.getMapProvider();
+        this.ruleProvider = context.getRuleProvider();
+
+        if (mapProvider == null) {
+            throw new RuntimeException("Cannot reload engine context: MapProvider is null");
+        }
+    }
+
     public void initialize() {
         if (running) {
             stop();
         }
-        
-        // Refresh providers from context
-        this.mapProvider = context.getMapProvider();
-        this.ruleProvider = context.getRuleProvider();
-        
-        if (mapProvider == null) {
-            throw new RuntimeException("Cannot initialize engine: MapProvider is null");
-        }
+
+        reloadContext();
 
         context.reset();
 
@@ -118,6 +120,7 @@ public class GameEngine {
     }
 
     private void update(double deltaTime) {
+
         GameState state = context.getState();
 
         mapProvider.update(deltaTime, context);
@@ -167,7 +170,7 @@ public class GameEngine {
 
             // 如果超出边界，停止移动并调整位置
             if (newX != x || newY != y) {
-                controllable.setVelocity(0, 0);
+                // controllable.setVelocity(0, 0); // Allow sliding along boundaries
                 controllable.setPosition(newX, newY);
                 controllable.noticeOutOfBounds();
             }
@@ -183,11 +186,10 @@ public class GameEngine {
                 continue;
 
             for (int j = i + 1; j < entities.size(); j++) {
-                if (!(entities.get(j) instanceof Entity e2) || !e2.isAlive())
+                if (!(entities.get(j) instanceof Entity e2) || !e2.isAlive() || e1.getId().equals(e2.getId()))
                     continue;
 
-                if (e1.intersects(e2)) {
-                    // 调用双方的碰撞处理，获取是否阻挡
+                if (e1.intersects(e2) || e2.intersects(e1)) {
                     boolean e1Blocked = e1.handleCollision(e2, context);
                     boolean e2Blocked = e2.handleCollision(e1, context);
 
@@ -212,11 +214,6 @@ public class GameEngine {
     private void cleanupDeadEntities() {
         GameState state = context.getState();
         state.getEntities().removeIf(obj -> obj instanceof Entity entity && !entity.isAlive());
-
-        // 清理队伍实体列表
-        for (java.util.List<Object> teamList : state.getTeamEntities().values()) {
-            teamList.removeIf(obj -> obj instanceof Entity entity && !entity.isAlive());
-        }
     }
 
     public void stop() {

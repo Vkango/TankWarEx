@@ -19,8 +19,8 @@ public class MainMenuPane extends VBox {
         title.setFont(Font.font("微软雅黑", 48));
         title.setFill(Color.web("#ecf0f1"));
 
-        Button startBtn = createButton("Start Game");
-        Button exitBtn = createButton("Exit Game");
+        Button startBtn = createButton("开始游戏");
+        Button exitBtn = createButton("退出游戏");
 
         startBtn.setOnAction(e -> {
             if (onStartGame != null)

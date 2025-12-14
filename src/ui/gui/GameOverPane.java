@@ -17,7 +17,7 @@ public class GameOverPane extends VBox {
         setSpacing(20);
         setStyle("-fx-background-color: rgba(0, 0, 0, 0.8);");
 
-        Text title = new Text("GAME OVER");
+        Text title = new Text("游戏结束");
         title.setFont(Font.font("微软雅黑", 48));
         title.setFill(Color.RED);
 
@@ -25,8 +25,8 @@ public class GameOverPane extends VBox {
         messageText.setFont(Font.font("微软雅黑", 24));
         messageText.setFill(Color.WHITE);
 
-        Button restartBtn = createButton("Restart Game");
-        Button backBtn = createButton("Back to Level Select");
+        Button restartBtn = createButton("重新开始");
+        Button backBtn = createButton("返回");
 
         restartBtn.setOnAction(e -> {
             if (onRestart != null)

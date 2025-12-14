@@ -1,4 +1,5 @@
 package ui.gui;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.layout.*;
@@ -8,6 +9,7 @@ import javafx.scene.text.Text;
 import game.map.MapProvider;
 import plugin.api.PluginManager;
 import java.util.function.Consumer;
+
 public class LevelSelectPane extends VBox {
     private Runnable onBack;
     private Consumer<MapProvider> onLevelSelected;
@@ -17,7 +19,7 @@ public class LevelSelectPane extends VBox {
         setSpacing(20);
         setStyle("-fx-background-color: #34495e;");
 
-        Text title = new Text("Select a map!");
+        Text title = new Text("选择一个地图");
         title.setFont(Font.font("微软雅黑", 36));
         title.setFill(Color.WHITE);
 
@@ -29,7 +31,7 @@ public class LevelSelectPane extends VBox {
             levelList.getChildren().add(levelBtn);
         }
 
-        Button backBtn = createButton("Back to Main Menu");
+        Button backBtn = createButton("返回");
         backBtn.setOnAction(e -> {
             if (onBack != null)
                 onBack.run();

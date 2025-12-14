@@ -23,11 +23,11 @@ public class GameRenderer extends AnimationTimer {
         this.engine = GameContext.getInstance().getEngine();
         updateFrameTime();
     }
-    
+
     public void setScale(double scale) {
         this.scale = Math.max(0.5, Math.min(2.0, scale));
     }
-    
+
     public double getScale() {
         return scale;
     }
@@ -50,7 +50,8 @@ public class GameRenderer extends AnimationTimer {
             updateFrameTime();
         }
 
-        if (engine == null) return;
+        if (engine == null)
+            return;
 
         if (now - lastHandleTime < frameTimeNanos) {
             return;
@@ -74,24 +75,21 @@ public class GameRenderer extends AnimationTimer {
 
         double viewportWidth = canvas.getWidth() / scale;
         double viewportHeight = canvas.getHeight() / scale;
-        
+
         double worldWidth = 800;
         double worldHeight = 600;
         if (context.getMapProvider() != null) {
             worldWidth = context.getMapProvider().getMapWidth();
             worldHeight = context.getMapProvider().getMapHeight();
         }
-        
+
         double cameraX = 0;
         double cameraY = 0;
-        
-        Entity player = state.getTeamEntityList(0).stream()
-        // TODO: 更通用的玩家实体识别方式
-                .filter(e -> e.getClass().getSimpleName().contains("PlayerTank"))
-                .filter(e -> ((Entity) e).isAlive())
-                .map(e -> (Entity) e)
-                .findFirst()
-                .orElse(null);
+
+        Entity player = null;
+        if (context.getMapProvider() != null) {
+            player = context.getMapProvider().getPlayerEntity(context);
+        }
 
         if (player != null) {
             cameraX = player.getX() + player.getWidth() / 2 - viewportWidth / 2;
@@ -108,24 +106,26 @@ public class GameRenderer extends AnimationTimer {
         gc.scale(scale, scale);
         gc.translate(-cameraX, -cameraY);
 
+        StringBuffer msg = new StringBuffer();
+
         for (Object obj : state.getEntities()) {
             if (obj instanceof Entity entity && entity.isAlive()) {
                 if (obj instanceof Entity rend) {
                     rend.render(gc, context);
+                    if (rend.getMessage().equals(""))
+                        continue;
+                    msg.append(rend.getMessage() + "\n");
                 }
             }
         }
-        
+
         gc.restore();
 
         gc.setFill(Color.WHITE);
         gc.setFont(new javafx.scene.text.Font(14));
-        gc.fillText("TankWarEx - Press ESC to pause, or -/+ to zoom"
-                + (engine.getState().isPaused() ? " [PAUSED]" : ""), 10, 20);
-        gc.fillText("Entities: " + state.getEntities().size(), 10, 40);
-
-        gc.fillText("FPS: " + fps, 10, 70);
+        gc.fillText("TankWarEx - 按下ESC键暂停, 或 -/+ 键缩放"
+                + (engine.getState().isPaused() ? " [暂停]" : "") + "\n" + "实体数量: " + state.getEntities().size()
+                + "\nFPS: " + fps + "\n" + msg, 10, 20);
     }
-
 
 }

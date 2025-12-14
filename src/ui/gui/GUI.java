@@ -9,7 +9,13 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import game.engine.GameContext;
+import game.engine.SaveManager;
+import game.rules.RuleProvider;
 import javafx.scene.layout.Pane;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import plugin.api.PluginManager;
+import java.util.Optional;
 
 public class GUI extends Application {
     private static GUI instance;
@@ -60,10 +66,6 @@ public class GUI extends Application {
         switch (newState) {
             case MAIN_MENU:
                 mainMenuPane.setVisible(true);
-                if (canvas != null && canvas.getScene() != null && canvas.getScene().getWindow() instanceof Stage) {
-                    Stage stage = (Stage) canvas.getScene().getWindow();
-                    stage.centerOnScreen();
-                }
                 break;
             case LEVEL_SELECT:
                 levelSelectPane.setVisible(true);
@@ -71,6 +73,7 @@ public class GUI extends Application {
             case PLAYING:
                 gamePane.setVisible(true);
                 if (context.getEngine() != null) {
+                    System.out.println("[GUI] Starting game engine");
                     context.getEngine().start();
                 }
                 break;
@@ -115,7 +118,7 @@ public class GUI extends Application {
         canvas = new Canvas();
         canvas.widthProperty().bind(gamePane.widthProperty());
         canvas.heightProperty().bind(gamePane.heightProperty());
-        
+
         gamePane.getChildren().add(canvas);
 
         pauseMenuPane = new PauseMenuPane();
@@ -132,6 +135,9 @@ public class GUI extends Application {
         pauseMenuPane.setOnBackToLevelSelect(() -> {
             context.getEngine().stop();
             switchState(UIState.LEVEL_SELECT);
+        });
+        pauseMenuPane.setOnSaveGame(() -> {
+            saveGame();
         });
 
         gameOverPane = new GameOverPane();
@@ -152,7 +158,7 @@ public class GUI extends Application {
                 gamePane,
                 pauseMenuPane,
                 gameOverPane);
-        
+
         game.engine.EventBus.getInstance().subscribe("GameOver", event -> {
             Platform.runLater(() -> {
                 context.getSoundManager().stopAll();
@@ -180,8 +186,6 @@ public class GUI extends Application {
                 }
             });
         });
-
-        context.getEngine().initResources();
 
         Scene scene = new Scene(root, 800, 600);
 
@@ -253,6 +257,35 @@ public class GUI extends Application {
     private void startLevel(game.map.MapProvider map) {
         System.out.println("[GUI] Starting level: " + map.getMapName());
         context.setMapProvider(map);
+
+        RuleProvider matchingRuleProvider = PluginManager.getInstance().getRuleProviderForMap(map);
+        if (matchingRuleProvider != null) {
+            context.setRuleProvider(matchingRuleProvider);
+            System.out.println("[GUI] Set RuleProvider: " + matchingRuleProvider.getClass().getName());
+        }
+
+        // 检查是否有该地图的存档
+        if (SaveManager.hasSaveGame(context)) {
+            Platform.runLater(() -> {
+                String saveInfo = SaveManager.getSaveInfo(context);
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("发现存档");
+                alert.setHeaderText("检测到该地图的存档");
+                alert.setContentText(saveInfo + "\n\n是否加载该存档？");
+
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.isPresent() && result.get() == ButtonType.OK) {
+                    loadGame();
+                } else {
+                    startNewGame();
+                }
+            });
+        } else {
+            startNewGame();
+        }
+    }
+
+    private void startNewGame() {
         context.getEngine().initialize();
         context.getEngine().initResources();
         if (renderer == null) {
@@ -261,5 +294,44 @@ public class GUI extends Application {
         }
 
         switchState(UIState.PLAYING);
+    }
+
+    private void saveGame() {
+        try {
+            SaveManager.saveGame(context);
+            context.showToast("游戏已保存");
+        } catch (Exception e) {
+            System.err.println("Error saving game: " + e.getMessage());
+            e.printStackTrace();
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("保存失败");
+                alert.setHeaderText(null);
+                alert.setContentText("保存游戏失败: " + e.getMessage());
+                alert.showAndWait();
+            });
+        }
+    }
+
+    private void loadGame() {
+        try {
+            SaveManager.loadGame(context);
+            // SaveManager.loadGame 已经调用了 reloadContext，不需要再调用
+            if (renderer == null) {
+                renderer = new GameRenderer(canvas);
+                renderer.start();
+            }
+            switchState(UIState.PLAYING);
+        } catch (Exception e) {
+            System.err.println("Error loading game: " + e.getMessage());
+            e.printStackTrace();
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("加载失败");
+                alert.setHeaderText(null);
+                alert.setContentText("加载游戏失败: " + e.getMessage());
+                alert.showAndWait();
+            });
+        }
     }
 }
