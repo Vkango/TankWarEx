@@ -16,6 +16,7 @@ Java Course Project: 坦克大战重构版
 游戏核心实际上仅为实体管理器. 真正的游戏内容全部在插件中.
 
 ### 实体系统 (插件实现)
+
 ```
 GameEntity (抽象基类)
 ├── Tank (坦克)
@@ -24,6 +25,7 @@ GameEntity (抽象基类)
 ```
 
 ### 线程模型
+
 ```
 UI线程:  键盘输入
            ↓
@@ -33,6 +35,7 @@ UI线程:  读取快照 → Canvas渲染 (AnimationTimer)
 ```
 
 ### 核心组件
+
 - `GameEngine` - 实时游戏循环 (60FPS)
 - `GameRenderer` - Canvas渲染器
 
@@ -47,6 +50,12 @@ UI线程:  读取快照 → Canvas渲染 (AnimationTimer)
 
 ```bash
 compile.bat
+```
+
+### 生成开发API
+
+```bash
+build_api.bat
 ```
 
 ### 运行游戏
