@@ -1,6 +1,6 @@
 package bootstrap;
 
-import game.config.DefaultGameConfig;
+import game.config.GameConfig;
 import game.engine.GameContext;
 import game.engine.GameEngine;
 import plugin.api.PluginManager;
@@ -19,7 +19,7 @@ public class Main {
 
         System.out.println("Loading game engine...");
 
-        DefaultGameConfig config = new DefaultGameConfig();
+        GameConfig config = new GameConfig();
         GameContext context = GameContext.getInstance();
         context.setConfig(config);
         GameEngine engine = new GameEngine();

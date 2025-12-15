@@ -3,15 +3,55 @@ package game.engine;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import game.map.MapProvider;
 
 public class SaveManager {
     private static final String SAVE_DIR = "saves";
     private static final String SAVE_FILE_PREFIX = "save_";
     private static final String SAVE_FILE_EXT = ".dat";
 
+    public static String calculateHash(String filePath) throws IOException, NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("MD5");
+
+        try (FileInputStream fis = new FileInputStream(filePath)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
+            }
+        }
+
+        byte[] hashBytes = digest.digest();
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashBytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
     public static String getJarKey() {
-        return "dev_ver";
+        try {
+            GameContext context = GameContext.getInstance();
+            MapProvider mapProvider = context.getMapProvider();
+
+            if (mapProvider == null) {
+                return "dev_ver";
+            }
+
+            File jarFile = plugin.api.PluginManager.getInstance().getJarFileForMapProvider(mapProvider);
+
+            if (jarFile.exists()) {
+                return calculateHash(jarFile.getAbsolutePath());
+            }
+
+            return "TANKWAREX";
+        } catch (Exception e) {
+            System.err.println("[SaveManager] Failed to generate jar key: " + e.getMessage());
+            return "TANKWAREX";
+        }
     }
 
     private static String getSaveFilePath(String mapName) {

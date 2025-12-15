@@ -16,6 +16,7 @@ public class PluginManager {
     private final List<MapProvider> mapProviders = new ArrayList<>();
     private final List<RuleProvider> ruleProviders = new ArrayList<>();
     private final List<ClassLoader> pluginClassLoaders = new ArrayList<>();
+    private final java.util.Map<ClassLoader, File> classLoaderToJarMap = new java.util.HashMap<>();
 
     private PluginManager() {
     }
@@ -31,8 +32,10 @@ public class PluginManager {
         mapProviders.clear();
         ruleProviders.clear();
         pluginClassLoaders.clear();
+        classLoaderToJarMap.clear();
 
         pluginClassLoaders.add(ClassLoader.getSystemClassLoader());
+        classLoaderToJarMap.put(ClassLoader.getSystemClassLoader(), null); // System loader, no JAR file
         loadServices(ClassLoader.getSystemClassLoader(), false);
 
         File pluginDir = new File("plugins");
@@ -49,6 +52,7 @@ public class PluginManager {
                     URLClassLoader pluginLoader = new URLClassLoader(new URL[] { url },
                             ClassLoader.getSystemClassLoader());
                     pluginClassLoaders.add(pluginLoader);
+                    classLoaderToJarMap.put(pluginLoader, file);
                     loadServices(pluginLoader, true);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
@@ -115,4 +119,13 @@ public class PluginManager {
     public List<ClassLoader> getPluginClassLoaders() {
         return new ArrayList<>(pluginClassLoaders);
     }
+
+    public File getJarFileForMapProvider(MapProvider mapProvider) {
+        if (mapProvider == null) {
+            return null;
+        }
+        ClassLoader classLoader = mapProvider.getClass().getClassLoader();
+        return classLoaderToJarMap.getOrDefault(classLoader, null);
+    }
+
 }
