@@ -15,6 +15,7 @@ public class Main {
         System.out.println("========================================");
 
         System.out.println("Loading plugins...");
+        PluginManager.getInstance().clear();
         PluginManager.getInstance().loadPlugins();
 
         System.out.println("Loading game engine...");

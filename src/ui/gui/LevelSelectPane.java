@@ -1,13 +1,19 @@
 package ui.gui;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import game.engine.SaveManager;
 import game.map.MapProvider;
 import plugin.api.PluginManager;
+
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class LevelSelectPane extends VBox {
@@ -57,9 +63,20 @@ public class LevelSelectPane extends VBox {
 
     private void reloadMaps() {
         System.out.println("[LevelSelectPane] Reloading plugins...");
-        PluginManager.getInstance().loadPlugins();
-        refreshMapList();
-        System.out.println("[LevelSelectPane] Plugins reloaded successfully!");
+        PluginManager.getInstance().clear();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("热重载Plugins");
+            alert.setHeaderText("现在plugins文件夹已开放写权限，请替换插件内容。");
+            alert.setContentText("在替换完成后，请单击确定继续。");
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent()) {
+                PluginManager.getInstance().loadPlugins();
+                refreshMapList();
+                System.out.println("[LevelSelectPane] Plugins reloaded successfully!");
+            }
+        });
+
     }
 
     private Button createLevelButton(String text, MapProvider map) {

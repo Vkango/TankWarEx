@@ -4,6 +4,7 @@ import game.map.MapProvider;
 import game.rules.RuleProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -28,7 +29,17 @@ public class PluginManager {
         return instance;
     }
 
-    public void loadPlugins() {
+    public void clear() {
+        for (ClassLoader loader : pluginClassLoaders) {
+            // 跳过系统加载器，它不是 URLClassLoader，也不需要关闭
+            if (loader instanceof URLClassLoader urlLoader && loader != ClassLoader.getSystemClassLoader()) {
+                try {
+                    urlLoader.close();
+                } catch (IOException e) {
+                    System.err.println("Failed to close ClassLoader: " + e.getMessage());
+                }
+            }
+        }
         mapProviders.clear();
         ruleProviders.clear();
         pluginClassLoaders.clear();
@@ -37,6 +48,10 @@ public class PluginManager {
         pluginClassLoaders.add(ClassLoader.getSystemClassLoader());
         classLoaderToJarMap.put(ClassLoader.getSystemClassLoader(), null); // System loader, no JAR file
         loadServices(ClassLoader.getSystemClassLoader(), false);
+
+    }
+
+    public void loadPlugins() {
 
         File pluginDir = new File("plugins");
         if (!pluginDir.exists()) {
