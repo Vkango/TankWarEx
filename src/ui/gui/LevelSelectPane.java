@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 public class LevelSelectPane extends VBox {
     private Runnable onBack;
     private Consumer<MapProvider> onLevelSelected;
+    private VBox levelList;
 
     public LevelSelectPane() {
         setAlignment(Pos.CENTER);
@@ -23,13 +24,16 @@ public class LevelSelectPane extends VBox {
         title.setFont(Font.font("微软雅黑", 36));
         title.setFill(Color.WHITE);
 
-        VBox levelList = new VBox(10);
+        levelList = new VBox(10);
         levelList.setAlignment(Pos.CENTER);
+        refreshMapList();
 
-        for (MapProvider map : PluginManager.getInstance().getMapProviders()) {
-            Button levelBtn = createLevelButton(map.getMapName(), map);
-            levelList.getChildren().add(levelBtn);
-        }
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        Button reloadBtn = createButton("重新加载地图");
+        reloadBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white;");
+        reloadBtn.setOnAction(e -> reloadMaps());
 
         Button backBtn = createButton("返回");
         backBtn.setOnAction(e -> {
@@ -37,7 +41,25 @@ public class LevelSelectPane extends VBox {
                 onBack.run();
         });
 
-        getChildren().addAll(title, levelList, backBtn);
+        buttonBox.getChildren().addAll(reloadBtn, backBtn);
+
+        getChildren().addAll(title, levelList, buttonBox);
+    }
+
+    private void refreshMapList() {
+        levelList.getChildren().clear();
+
+        for (MapProvider map : PluginManager.getInstance().getMapProviders()) {
+            Button levelBtn = createLevelButton(map.getMapName(), map);
+            levelList.getChildren().add(levelBtn);
+        }
+    }
+
+    private void reloadMaps() {
+        System.out.println("[LevelSelectPane] Reloading plugins...");
+        PluginManager.getInstance().loadPlugins();
+        refreshMapList();
+        System.out.println("[LevelSelectPane] Plugins reloaded successfully!");
     }
 
     private Button createLevelButton(String text, MapProvider map) {
